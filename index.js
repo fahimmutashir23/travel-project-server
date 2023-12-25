@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const port = process.env.PORT || 5000;
@@ -63,6 +63,16 @@ async function run() {
       const result = await hotelCollection.find(query).toArray();
       res.send(result);
     });
+
+    // Single API
+    app.get("/hotels/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)}
+      const result = await hotelCollection.findOne(filter);
+      res.send(result);
+    });
+    
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
