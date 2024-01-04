@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const stripe = require("stripe")(process.env.PAYMENT_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -52,18 +53,18 @@ async function run() {
     // Hotels APIs
     app.get("/hotels", async (req, res) => {
       const search = req.query.search;
-      const findReserveHotel = await bookingCollection.findOne({
-        _id: new ObjectId(search.id),
-      });
-      const findReserveRoom = findReserveHotel.hotel_room.find((room) => room.id === search.room_id);
-      const findCheckIn = findReserveRoom?.checkIn;
-      const findCheckOut = findReserveRoom?.checkOut;
-      if (
-        new Date(findCheckIn).getTime() < new Date(search.checkIn).getTime() ||
-        new Date(findCheckIn).getTime() > new Date(search.checkIn).getTime()
-      ) {
-          return res.send({message: "This Date is not Available right now"})
-      }
+      // const findReserveHotel = await bookingCollection.findOne({
+      //   _id: new ObjectId(search.id),
+      // });
+      // const findReserveRoom = findReserveHotel.hotel_room.find((room) => room.id === search.room_id);
+      // const findCheckIn = findReserveRoom?.checkIn;
+      // const findCheckOut = findReserveRoom?.checkOut;
+      // if (
+      //   new Date(findCheckIn).getTime() < new Date(search.checkIn).getTime() ||
+      //   new Date(findCheckIn).getTime() > new Date(search.checkIn).getTime()
+      // ) {
+      //     return res.send({message: "This Date is not Available right now"})
+      // }
       let query;
       if (search) {
         query = {
@@ -96,6 +97,20 @@ async function run() {
       const result = await bookingCollection.find().toArray();
       res.send(result);
     });
+
+    // Payment Intent
+    app.post("/payment-intent", async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
