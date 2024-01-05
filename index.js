@@ -94,7 +94,12 @@ async function run() {
     });
 
     app.get("/bookings", async (req, res) => {
-      const result = await bookingCollection.find().toArray();
+      const email = req.query.email;
+      let filter
+      if(email){
+        filter = {email: email}
+      }
+      const result = await bookingCollection.find(filter).toArray();
       res.send(result);
     });
 
