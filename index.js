@@ -50,6 +50,22 @@ async function run() {
       res.send(result);
     });
 
+    app.put("/users/:email", async(req, res) => {
+      const info = req.body;
+      const email = req.params.email;
+      const filter = {email: email};
+      const updatedDoc = {
+        $set: {
+          name: info.name,
+          email: info.email,
+          profileImage: info.profileImage,
+          country: info.country
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
+
     // Hotels APIs
     app.get("/hotels", async (req, res) => {
       const search = req.query.search;
