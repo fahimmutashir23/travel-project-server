@@ -4,11 +4,26 @@ const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
+const nodemailer = require("nodemailer");
 
 const port = process.env.PORT || 5000;
 
+
+
 app.use(express.json());
 app.use(cors());
+
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_MAIL,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.pyhg6t2.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -104,9 +119,24 @@ async function run() {
 
     // Hotels Post API
     app.post("/bookings", async (req, res) => {
-      const info = req.body;
+      const info = req.body.reserveInfoExtend;
+      const messageInfo = req.body.emailInfo;
       const result = await bookingCollection.insertOne(info);
       res.send(result);
+
+      const emailFormat = await transporter.sendMail({
+        from: '<mdfahim.muntashir28@gmail.com>',
+        to: info.email, 
+        subject: messageInfo.subject,
+        text: messageInfo.message,
+      });
+
+      transporter.sendMail(emailFormat, (error, info) => {
+        if(error){
+          res.send(error);
+        }
+      })
+
     });
 
     app.get("/bookings", async (req, res) => {
