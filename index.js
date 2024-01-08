@@ -117,7 +117,15 @@ async function run() {
       res.send(result);
     });
 
-    // Hotels Post API
+    // Add Hotel API
+    app.post("/hotels", async (req, res) => {
+      const info = req.body;
+      const result = await hotelCollection.insertOne(info);
+      res.send(result);
+    });
+
+
+    // Bookings Post API
     app.post("/bookings", async (req, res) => {
       const info = req.body.reserveInfoExtend;
       const messageInfo = req.body.emailInfo;
