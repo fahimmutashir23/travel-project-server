@@ -42,6 +42,7 @@ async function run() {
     const userCollection = client.db("TravelDB").collection("users");
     const hotelCollection = client.db("TravelDB").collection("hotels");
     const bookingCollection = client.db("TravelDB").collection("bookings");
+    const packageCollection = client.db("TravelDB").collection("packages");
 
     // User related API
     app.get("/users", async (req, res) => {
@@ -137,6 +138,14 @@ async function run() {
       res.send(result)
     })
 
+    app.delete("/hotels/:id", async(req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = {_id : new ObjectId(id)};
+      const result = await hotelCollection.deleteOne(query);
+      res.send(result);
+    })
+
 
     // Bookings Post API
     app.post("/bookings", async (req, res) => {
@@ -181,6 +190,19 @@ async function run() {
       });
       res.send({ clientSecret: paymentIntent.client_secret });
     });
+
+    // Package API
+    app.post("/packages", async(req, res) => {
+      const data = req.body;
+      const result = await packageCollection.insertOne(data);
+      res.send(result);
+    })
+
+    app.get("/packages", async(req, res) => {
+      const data = req.body;
+      const result = await packageCollection.find().toArray();
+      res.send(result);
+    })
 
 
 
