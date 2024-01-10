@@ -124,6 +124,19 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/rooms/:id", async(req, res) => {
+      const info = req.body;
+      const id = req.params.id;
+      const filter= {_id : new ObjectId(id)};
+      const updatedDoc = {
+        $push : {
+          hotel_room : info
+        }
+      }
+      const result = await hotelCollection.updateOne(filter, updatedDoc);
+      res.send(result)
+    })
+
 
     // Bookings Post API
     app.post("/bookings", async (req, res) => {
