@@ -200,7 +200,7 @@ async function run() {
 
     app.get("/packages", async(req, res) => {
       const data = req.body;
-      const result = await packageCollection.find().toArray();
+      const result = await packageCollection.find().limit(10).toArray();
       res.send(result);
     })
 
