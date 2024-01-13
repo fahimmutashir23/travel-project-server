@@ -199,9 +199,29 @@ async function run() {
     })
 
     app.get("/packages", async(req, res) => {
-      const data = req.body;
-      const result = await packageCollection.find().limit(10).toArray();
+      const limit = parseInt(req.query.limit);
+      const result = await packageCollection.find().limit(limit).toArray();
       res.send(result);
+    })
+
+    app.delete('/packages/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)};
+      const result = await packageCollection.deleteOne(query);
+      res.send(result)
+    })
+
+    app.patch('/packages/:id', async(req, res) => {
+      const id = req.params.id;
+      const discount = req.body;
+      const filter = {_id : new ObjectId(id)};
+      const updatedDoc = {
+          $set:{
+            discount : discount.discountRate
+          }
+      }
+      const result = await packageCollection.updateOne(filter, updatedDoc);
+      res.send(result)
     })
 
 
