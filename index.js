@@ -66,10 +66,10 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/users/:email", async(req, res) => {
+    app.put("/users/:email", async (req, res) => {
       const info = req.body;
       const email = req.params.email;
-      const filter = {email: email};
+      const filter = { email: email };
       const updatedDoc = {
         $set: {
           name: info.name,
@@ -125,23 +125,23 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/rooms/:id", async(req, res) => {
+    app.patch("/rooms/:id", async (req, res) => {
       const info = req.body;
       const id = req.params.id;
-      const filter= {_id : new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
-        $push : {
-          hotel_room : info
+        $push: {
+          hotel_room: info
         }
       }
       const result = await hotelCollection.updateOne(filter, updatedDoc);
       res.send(result)
     })
 
-    app.delete("/hotels/:id", async(req, res) => {
+    app.delete("/hotels/:id", async (req, res) => {
       const id = req.params.id;
       console.log(id);
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await hotelCollection.deleteOne(query);
       res.send(result);
     })
@@ -156,13 +156,13 @@ async function run() {
 
       const emailFormat = await transporter.sendMail({
         from: '<mdfahim.muntashir28@gmail.com>',
-        to: info.email, 
+        to: info.email,
         subject: messageInfo.subject,
         text: messageInfo.message,
       });
 
       transporter.sendMail(emailFormat, (error, info) => {
-        if(error){
+        if (error) {
           res.send(error);
         }
       })
@@ -172,8 +172,8 @@ async function run() {
     app.get("/bookings", async (req, res) => {
       const email = req.query.email;
       let filter
-      if(email){
-        filter = {email: email}
+      if (email) {
+        filter = { email: email }
       }
       const result = await bookingCollection.find(filter).toArray();
       res.send(result);
@@ -192,38 +192,59 @@ async function run() {
     });
 
     // Package API
-    app.post("/packages", async(req, res) => {
+    app.post("/packages", async (req, res) => {
       const data = req.body;
       const result = await packageCollection.insertOne(data);
       res.send(result);
     })
 
-    app.get("/packages", async(req, res) => {
+    app.get("/packages", async (req, res) => {
       const limit = parseInt(req.query.limit);
       const result = await packageCollection.find().limit(limit).toArray();
       res.send(result);
     })
 
-    app.delete('/packages/:id', async(req, res) => {
+    app.delete('/packages/:id', async (req, res) => {
       const id = req.params.id;
-      const query = {_id : new ObjectId(id)};
+      const query = { _id: new ObjectId(id) };
       const result = await packageCollection.deleteOne(query);
       res.send(result)
     })
 
-    app.patch('/packages/:id', async(req, res) => {
+    app.patch('/packages/:id', async (req, res) => {
       const id = req.params.id;
       const discount = req.body;
-      const filter = {_id : new ObjectId(id)};
+      const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
-          $set:{
-            discount : discount.discountRate
-          }
+        $set: {
+          discount: discount.discountRate
+        }
       }
       const result = await packageCollection.updateOne(filter, updatedDoc);
       res.send(result)
     })
-
+    app.get("/stats", async (req, res) => {
+      try {
+         const users= await userCollection.estimatedDocumentCount()
+         const totalPackages=  await packageCollection.estimatedDocumentCount()
+         const totalBookings=  await bookingCollection.estimatedDocumentCount()
+         const result=  await bookingCollection.aggregate([
+          {
+            $group:{
+              _id:null,
+              totalRevenue:{
+                $sum:'$roomPrice'
+              }
+            }
+          }
+         ]).toArray()
+         revenue= result.length> 0 ? result[0].totalRevenue: 0;
+         res.send({users, totalPackages, totalBookings, revenue})
+      }
+      catch (err) {
+        console.log(err);
+      }
+    })
 
 
     // Send a ping to confirm a successful connection
