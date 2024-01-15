@@ -171,9 +171,13 @@ async function run() {
 
     app.get("/bookings", async (req, res) => {
       const email = req.query.email;
+      const search = req.query.search;
       let filter
       if (email) {
         filter = { email: email }
+      }
+      if(search){
+        filter = { email: { $regex: search, $options: "i" } }
       }
       const result = await bookingCollection.find(filter).toArray();
       res.send(result);
@@ -199,8 +203,22 @@ async function run() {
     })
 
     app.get("/packages", async (req, res) => {
+      const search = req.query.search;
       const limit = parseInt(req.query.limit);
-      const result = await packageCollection.find().limit(limit).toArray();
+      const query = {
+        $or : [
+          { name : { $regex: search, $options: "i" } },
+          { destination : { $regex: search, $options: "i" } }
+        ]
+      }
+      const result = await packageCollection.find(query).limit(limit).toArray();
+      res.send(result);
+    })
+
+    app.get("/packages/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)}
+      const result = await packageCollection.findOne(filter);
       res.send(result);
     })
 
