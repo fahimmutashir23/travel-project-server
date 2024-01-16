@@ -172,12 +172,16 @@ async function run() {
     app.get("/bookings", async (req, res) => {
       const email = req.query.email;
       const search = req.query.search;
+      const category = req.query.category;
       let filter
       if (email) {
         filter = { email: email }
       }
       if(search){
         filter = { email: { $regex: search, $options: "i" } }
+      }
+      if(category){
+        filter = {category : category}
       }
       const result = await bookingCollection.find(filter).toArray();
       res.send(result);
@@ -205,11 +209,14 @@ async function run() {
     app.get("/packages", async (req, res) => {
       const search = req.query.search;
       const limit = parseInt(req.query.limit);
-      const query = {
-        $or : [
-          { name : { $regex: search, $options: "i" } },
-          { destination : { $regex: search, $options: "i" } }
-        ]
+      let query
+      if(search){
+        query = {
+          $or : [
+            { name : { $regex: search, $options: "i" } },
+            { destination : { $regex: search, $options: "i" } }
+          ]
+        }
       }
       const result = await packageCollection.find(query).limit(limit).toArray();
       res.send(result);
