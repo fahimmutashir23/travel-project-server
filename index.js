@@ -82,6 +82,21 @@ async function run() {
       res.send(result)
     })
 
+    app.patch("/users/:id", async (req, res) => {
+      const isAdmin = req.body.response
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          admin : isAdmin
+        }
+      }
+      const result = await userCollection.updateOne(filter, updatedDoc)
+      res.send(result)
+    })
+
+
+
     // Hotels APIs
     app.get("/hotels", async (req, res) => {
       const search = req.query.search;
@@ -140,7 +155,6 @@ async function run() {
 
     app.delete("/hotels/:id", async (req, res) => {
       const id = req.params.id;
-      console.log(id);
       const query = { _id: new ObjectId(id) };
       const result = await hotelCollection.deleteOne(query);
       res.send(result);
@@ -186,6 +200,23 @@ async function run() {
       const result = await bookingCollection.find(filter).toArray();
       res.send(result);
     });
+
+    app.delete("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    app.patch("/bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)}
+      const updatedDoc = {
+        $set : {status : 'Done'}
+      }
+      const result = await bookingCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
 
     // Payment Intent
     app.post("/payment-intent", async (req, res) => {
