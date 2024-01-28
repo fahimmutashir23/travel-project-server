@@ -5,6 +5,9 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const stripe = require("stripe")(process.env.PAYMENT_KEY);
 const nodemailer = require("nodemailer");
+// const pdf = require("html-pdf");
+// const pdfTemplate = require('./documents')
+// const axios = require('axios');
 
 const port = process.env.PORT || 5000;
 
@@ -161,12 +164,43 @@ async function run() {
     })
 
 
+    //PDF Generator
+
+    app.post('/generatePdf', async(req, res) => {
+      pdf.create(pdfTemplate("Fahim"), {}).toFile('result.pdf', (err, buffer) => {
+       if(err){
+         return res.status(500).send({message: 'Generate failed'});
+       }
+       res.setHeader('Content-Type', 'application/pdf')
+       res.send(buffer)
+      });
+     });
+
+
     // Bookings Post API
     app.post("/bookings", async (req, res) => {
       const info = req.body.reserveInfoExtend;
       const messageInfo = req.body.emailInfo;
       const result = await bookingCollection.insertOne(info);
       res.send(result);
+
+      // const invoice = await axios.get('http://localhost:5000/generatePdf', {responseType: 'arraybuffer'});
+      // const invoiceContent = Buffer.from(invoice.data, 'binary').toString('base64')
+
+
+      // const emailFormat = {
+      //   from: '<mdfahim.muntashir28@gmail.com>',
+      //   to: info.email,
+      //   subject: messageInfo.subject,
+      //   text: messageInfo.message,
+      //   attachments: [
+      //     {
+      //       filename: 'Invoice.pdf',
+      //       content: invoiceContent,
+      //       encoding: 'base64'
+      //     }
+      //   ]
+      // };
 
       const emailFormat = await transporter.sendMail({
         from: '<mdfahim.muntashir28@gmail.com>',
@@ -180,7 +214,7 @@ async function run() {
           res.send(error);
         }
       })
-
+      
     });
 
     app.get("/bookings", async (req, res) => {
@@ -301,6 +335,9 @@ async function run() {
         console.log(err);
       }
     })
+
+
+    //---------------------------------------------------------------------------------------//
 
 
     // Send a ping to confirm a successful connection
