@@ -96,6 +96,7 @@ module.exports = ( invoice ) => {
          <div class="flex">
           <div class="invoice-info">
               <p><strong>Invoice Number:</strong> INV-001</p>
+              <p><strong>Transaction ID:</strong> ${invoice?.transactionID}</p>
               <p><strong>Date:</strong> ${invoice?.date}</p>
           </div>
           <div>

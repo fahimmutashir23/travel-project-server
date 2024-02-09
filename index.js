@@ -41,6 +41,7 @@ async function run() {
     const hotelCollection = client.db("TravelDB").collection("hotels");
     const bookingCollection = client.db("TravelDB").collection("bookings");
     const packageCollection = client.db("TravelDB").collection("packages");
+    const webControllerCollection = client.db("TravelDB").collection("webControllers");
 
     // User related API
     app.get("/users", async (req, res) => {
@@ -97,6 +98,7 @@ async function run() {
 
     app.get("/hotels", async (req, res) => {
       const search = req.query.search;
+      const limit = parseInt(req.query.limit);
       // const findReserveHotel = await bookingCollection.findOne({
       //   _id: new ObjectId(search.id),
       // });
@@ -118,7 +120,7 @@ async function run() {
           ],
         };
       }
-      const result = await hotelCollection.find(query).limit(8).sort({totalBook : -1}).toArray();
+      const result = await hotelCollection.find(query).limit(limit).sort({totalBook : -1}).toArray();
       res.send(result);
     });
 
@@ -196,7 +198,6 @@ async function run() {
         // res.send({ pdfBuffer: buffer })
         sendEmailWithAttachment(buffer, mailInfo)
           .then(() => {
-            // console.log("Email sent successfully");
             res.status(200).send({ message: "Email send successfully" });
           })
           .catch((error) => {
@@ -289,7 +290,7 @@ async function run() {
           ],
         };
       }
-      const result = await packageCollection.find(query).limit(limit).toArray();
+      const result = await packageCollection.find(query).limit(limit).sort({totalBook : -1}).toArray();
       res.send(result);
     });
 
@@ -319,6 +320,19 @@ async function run() {
       const result = await packageCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
+
+    app.patch("/bookPackages/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $inc: { totalBook: 1 },
+      };
+      const result = await packageCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    // Dashboard stat API ---------------------------------------------------------------------------
+
     app.get("/stats", async (req, res) => {
       try {
         const users = await userCollection.estimatedDocumentCount();
@@ -342,6 +356,28 @@ async function run() {
         console.log(err);
       }
     });
+
+    // Web Controller API -------------------------------------------------------------------
+
+    app.get('/webControllers/:id', async(req, res) => {
+      const id = parseInt(req.params.id)
+      const query = {id : id}
+      const result = await webControllerCollection.findOne(query);
+      res.send(result)
+    })
+
+    app.patch('/webControllers/:id', async(req, res) => {
+        const id = req.params.id;
+        const filter = {_id : new ObjectId(id)};
+        const quantity = parseInt(req.body.num)
+        const updatedDoc = {
+          $set: {
+            numOfShowInHome : quantity
+          }
+        };
+        const result = await webControllerCollection.updateOne(filter, updatedDoc);
+        res.send(result)
+    })
 
     //---------------------------------------------------------------------------------------//
 
