@@ -42,6 +42,8 @@ async function run() {
     const bookingCollection = client.db("TravelDB").collection("bookings");
     const packageCollection = client.db("TravelDB").collection("packages");
     const webControllerCollection = client.db("TravelDB").collection("webControllers");
+    const mediaCollection = client.db("TravelDB").collection("medias");
+    const advertisementCollection = client.db("TravelDB").collection("advertisements");
 
     // User related API
     app.get("/users", async (req, res) => {
@@ -368,6 +370,7 @@ async function run() {
 
     app.patch('/webControllers/:id', async(req, res) => {
         const id = req.params.id;
+        console.log(id);
         const filter = {_id : new ObjectId(id)};
         const quantity = parseInt(req.body.num)
         const updatedDoc = {
@@ -379,7 +382,70 @@ async function run() {
         res.send(result)
     })
 
+    // Media API ---------------------------------------------------------------------------------
+
+    app.get('/medias/:id', async(req, res) => {
+      const id = parseInt(req.params.id)
+      const query = {id : id}
+      const result = await mediaCollection.findOne(query);
+      res.send(result)
+    })
+
+    app.patch('/medias/:id', async(req, res) => {
+        const id = req.params.id;
+        const filter = {_id : new ObjectId(id)};
+        const quantity = parseInt(req.body.num)
+        const updatedDoc = {
+          $set: {
+            numOfShowInHome : quantity
+          }
+        };
+        const result = await mediaCollection.updateOne(filter, updatedDoc);
+        res.send(result)
+    })
+
+    // Advertisement -------------------------------------------------------------------------------------
+
+    app.get('/advertisements', async(req, res) => {
+      const result = await advertisementCollection.find().toArray();
+      res.send(result)
+    })
+
+    app.get('/advertisements/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = {_id : new ObjectId(id)}
+      const result = await advertisementCollection.findOne(query);
+      res.send(result)
+    })
+
+    app.post('/advertisements', async (req, res) => {
+      const data = req.body;
+      const result = await advertisementCollection.insertOne(data);
+      res.send(result)
+    })
+
+    app.patch('/advertisements/:id', async (req, res) => {
+      const data = req.body.active;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set : {isActive: data}
+      }
+      await advertisementCollection.updateMany({}, {$set: {isActive: false}}) 
+      const result = await advertisementCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    })
+
+    app.delete('/advertisements/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = {_id : new ObjectId(id)};
+      const result = await advertisementCollection.deleteOne(filter);
+      res.send(result)
+    })
+
+
     //---------------------------------------------------------------------------------------//
+
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
